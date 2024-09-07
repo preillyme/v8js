@@ -28,9 +28,17 @@ if test "$PHP_V8JS" != "no"; then
       AC_MSG_RESULT(found in $i)
     fi
 
+    # Debian installations
     if test -r $i/$PHP_LIBDIR/$ARCH-linux-gnu/$SEARCH_FOR; then
       V8_INCLUDE_DIR=$i/include/v8
       V8_LIBRARY_DIR=$i/$PHP_LIBDIR/$ARCH-linux-gnu
+      AC_MSG_RESULT(found in $i)
+    fi
+
+    # Manual installations
+    if test -r $i/$PHP_LIBDIR/$SEARCH_FOR && test -r $i/include/libplatform/libplatform.h; then
+      V8_INCLUDE_DIR=$i/include
+      V8_LIBRARY_DIR=$i/$PHP_LIBDIR
       AC_MSG_RESULT(found in $i)
     fi
   done
