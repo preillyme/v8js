@@ -18,10 +18,18 @@ if test "$PHP_V8JS" != "no"; then
     V8_LIBRARY_DIR=$PHP_V8JS/$PHP_LIBDIR
   else
     AC_MSG_CHECKING([for V8 files in default path])
+    ARCH=$(uname -m)
+
     for i in $SEARCH_PATH ; do
       if test -r $i/$PHP_LIBDIR/$SEARCH_FOR; then
         V8_INCLUDE_DIR=$i/include/v8
         V8_LIBRARY_DIR=$i/$PHP_LIBDIR
+        AC_MSG_RESULT(found in $i)
+      fi
+
+      if test -r $i/$PHP_LIBDIR/$ARCH-linux-gnu/$SEARCH_FOR; then
+        V8_INCLUDE_DIR=$i/include/v8
+        V8_LIBRARY_DIR=$i/$PHP_LIBDIR/$ARCH-linux-gnu
         AC_MSG_RESULT(found in $i)
       fi
     done
