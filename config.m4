@@ -5,35 +5,35 @@ if test "$PHP_V8JS" != "no"; then
   SEARCH_PATH="/usr/local /usr"
   SEARCH_FOR="libv8.$SHLIB_SUFFIX_NAME"
 
-  if test -r $PHP_V8JS/$SEARCH_FOR; then
-    case $host_os in
-      darwin* )
-        # MacOS does not support --rpath
-        ;;
-      * )
-        LDFLAGS="$LDFLAGS -Wl,--rpath=$PHP_V8JS/$PHP_LIBDIR"
-        ;;
-    esac
-    V8_INCLUDE_DIR=$PHP_V8JS/include/v8
-    V8_LIBRARY_DIR=$PHP_V8JS/$PHP_LIBDIR
-  else
-    AC_MSG_CHECKING([for V8 files in default path])
-    ARCH=$(uname -m)
-
-    for i in $SEARCH_PATH ; do
-      if test -r $i/$PHP_LIBDIR/$SEARCH_FOR; then
-        V8_INCLUDE_DIR=$i/include/v8
-        V8_LIBRARY_DIR=$i/$PHP_LIBDIR
-        AC_MSG_RESULT(found in $i)
-      fi
-
-      if test -r $i/$PHP_LIBDIR/$ARCH-linux-gnu/$SEARCH_FOR; then
-        V8_INCLUDE_DIR=$i/include/v8
-        V8_LIBRARY_DIR=$i/$PHP_LIBDIR/$ARCH-linux-gnu
-        AC_MSG_RESULT(found in $i)
-      fi
-    done
+  if test -d "$PHP_V8JS"; then
+    SEARCH_PATH="$PHP_V8JS $SEARCH_PATH"
   fi
+
+  case $host_os in
+    darwin* )
+      # MacOS does not support --rpath
+      ;;
+    * )
+      LDFLAGS="$LDFLAGS -Wl,--rpath=$PHP_V8JS/$PHP_LIBDIR"
+      ;;
+  esac
+
+  AC_MSG_CHECKING([for V8 files in default path])
+  ARCH=$(uname -m)
+
+  for i in $SEARCH_PATH ; do
+    if test -r $i/$PHP_LIBDIR/$SEARCH_FOR; then
+      V8_INCLUDE_DIR=$i/include/v8
+      V8_LIBRARY_DIR=$i/$PHP_LIBDIR
+      AC_MSG_RESULT(found in $i)
+    fi
+
+    if test -r $i/$PHP_LIBDIR/$ARCH-linux-gnu/$SEARCH_FOR; then
+      V8_INCLUDE_DIR=$i/include/v8
+      V8_LIBRARY_DIR=$i/$PHP_LIBDIR/$ARCH-linux-gnu
+      AC_MSG_RESULT(found in $i)
+    fi
+  done
 
   AC_DEFINE_UNQUOTED([PHP_V8_EXEC_PATH], "$V8_LIBRARY_DIR/$SEARCH_FOR", [Full path to libv8 library file])
 
