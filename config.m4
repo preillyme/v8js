@@ -3,37 +3,55 @@ PHP_ARG_WITH(v8js, for V8 Javascript Engine,
 
 if test "$PHP_V8JS" != "no"; then
   SEARCH_PATH="/usr/local /usr"
-  SEARCH_FOR="$PHP_LIBDIR/libv8.$SHLIB_SUFFIX_NAME"
-  
-  if test -r $PHP_V8JS/$SEARCH_FOR; then
-    case $host_os in
-      darwin* )
-        # MacOS does not support --rpath
-        ;;
-      * )
-        LDFLAGS="$LDFLAGS -Wl,--rpath=$PHP_V8JS/$PHP_LIBDIR"
-        ;;
-    esac
-    V8_DIR=$PHP_V8JS
-  else
-    AC_MSG_CHECKING([for V8 files in default path])
-    for i in $SEARCH_PATH ; do
-      if test -r $i/$SEARCH_FOR; then
-        V8_DIR=$i
-        AC_MSG_RESULT(found in $i)
-      fi
-    done
+  SEARCH_FOR="libv8.$SHLIB_SUFFIX_NAME"
+
+  if test -d "$PHP_V8JS"; then
+    SEARCH_PATH="$PHP_V8JS $SEARCH_PATH"
   fi
 
-  AC_DEFINE_UNQUOTED([PHP_V8_EXEC_PATH], "$V8_DIR/$SEARCH_FOR", [Full path to libv8 library file])
+  case $host_os in
+    darwin* )
+      # MacOS does not support --rpath
+      ;;
+    * )
+      LDFLAGS="$LDFLAGS -Wl,--rpath=$PHP_V8JS/$PHP_LIBDIR"
+      ;;
+  esac
 
-  if test -z "$V8_DIR"; then
+  AC_MSG_CHECKING([for V8 files in default path])
+  ARCH=$(uname -m)
+
+  for i in $SEARCH_PATH ; do
+    if test -r $i/$PHP_LIBDIR/$SEARCH_FOR; then
+      V8_INCLUDE_DIR=$i/include/v8
+      V8_LIBRARY_DIR=$i/$PHP_LIBDIR
+      AC_MSG_RESULT(found in $i)
+    fi
+
+    # Debian installations
+    if test -r $i/$PHP_LIBDIR/$ARCH-linux-gnu/$SEARCH_FOR; then
+      V8_INCLUDE_DIR=$i/include/v8
+      V8_LIBRARY_DIR=$i/$PHP_LIBDIR/$ARCH-linux-gnu
+      AC_MSG_RESULT(found in $i)
+    fi
+
+    # Manual installations
+    if test -r $i/$PHP_LIBDIR/$SEARCH_FOR && test -r $i/include/libplatform/libplatform.h; then
+      V8_INCLUDE_DIR=$i/include
+      V8_LIBRARY_DIR=$i/$PHP_LIBDIR
+      AC_MSG_RESULT(found in $i)
+    fi
+  done
+
+  AC_DEFINE_UNQUOTED([PHP_V8_EXEC_PATH], "$V8_LIBRARY_DIR/$SEARCH_FOR", [Full path to libv8 library file])
+
+  if test -z "$V8_INCLUDE_DIR" || test -z "$V8_LIBRARY_DIR"; then
     AC_MSG_RESULT([not found])
     AC_MSG_ERROR([Please reinstall the v8 distribution])
   fi
 
-  PHP_ADD_INCLUDE($V8_DIR/include)
-  PHP_ADD_LIBRARY_WITH_PATH(v8, $V8_DIR/$PHP_LIBDIR, V8JS_SHARED_LIBADD)
+  PHP_ADD_INCLUDE($V8_INCLUDE_DIR)
+  PHP_ADD_LIBRARY_WITH_PATH(v8, $V8_LIBRARY_DIR, V8JS_SHARED_LIBADD)
   PHP_SUBST(V8JS_SHARED_LIBADD)
   PHP_REQUIRE_CXX()
 
@@ -89,8 +107,8 @@ if test "$PHP_V8JS" != "no"; then
 
   AC_LANG_PUSH([C++])
 
-  CPPFLAGS="$CPPFLAGS -I$V8_DIR/include -std=$ac_cv_v8_cstd"
-  LDFLAGS="$LDFLAGS -L$V8_DIR/$PHP_LIBDIR"
+  CPPFLAGS="$CPPFLAGS -I$V8_INCLUDE_DIR -std=$ac_cv_v8_cstd"
+  LDFLAGS="$LDFLAGS -L$V8_LIBRARY_DIR"
 
   AC_MSG_CHECKING([for libv8_libplatform])
   AC_DEFUN([V8_CHECK_LINK], [
@@ -161,7 +179,7 @@ int main ()
 	AC_MSG_CHECKING([for $1])
 	blob_found=0
 
-	for i in "$V8_DIR/$PHP_LIBDIR" "$V8_DIR/share/v8"; do
+	for i in "$V8_LIBRARY_DIR" "$V8_INCLUDE_DIR/../share/v8"; do
 	  if test -r "$i/$1"; then
 		AC_MSG_RESULT([found ($i/$1)])
 		AC_DEFINE_UNQUOTED([$2], "$i/$1", [Full path to $1 file])
@@ -219,7 +237,7 @@ int main ()
 
   AC_DEFINE([V8_DEPRECATION_WARNINGS], [1], [Enable compiler warnings when using V8_DEPRECATED apis.])
 
-  PHP_ADD_INCLUDE($V8_DIR)
+  PHP_ADD_INCLUDE($V8_INCLUDE_DIR)
   PHP_NEW_EXTENSION(v8js, [	\
     v8js_array_access.cc	\
     v8js_class.cc			\
