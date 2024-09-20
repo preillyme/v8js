@@ -16,6 +16,8 @@
 #include "config.h"
 #endif
 
+#include <stdexcept>
+
 #include "php_v8js_macros.h"
 #include "v8js_array_access.h"
 #include "v8js_exceptions.h"
