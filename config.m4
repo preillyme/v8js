@@ -6,39 +6,41 @@ if test "$PHP_V8JS" != "no"; then
   SEARCH_FOR="libv8.$SHLIB_SUFFIX_NAME"
 
   if test -d "$PHP_V8JS"; then
-    SEARCH_PATH="$PHP_V8JS $SEARCH_PATH"
-  fi
+    SEARCH_PATH="$PHP_V8JS"
 
-  case $host_os in
-    darwin* )
-      # MacOS does not support --rpath
-      ;;
-    * )
-      LDFLAGS="$LDFLAGS -Wl,--rpath=$PHP_V8JS/$PHP_LIBDIR"
-      ;;
-  esac
+    # set rpath, so library loader picks up libv8 even if it's not on the
+    # system's library search path
+    case $host_os in
+      darwin* )
+        # MacOS does not support --rpath
+        ;;
+      * )
+        LDFLAGS="$LDFLAGS -Wl,--rpath=$PHP_V8JS/$PHP_LIBDIR"
+        ;;
+    esac
+  fi
 
   AC_MSG_CHECKING([for V8 files in default path])
   ARCH=$(uname -m)
 
   for i in $SEARCH_PATH ; do
-    if test -r $i/$PHP_LIBDIR/$SEARCH_FOR; then
-      V8_INCLUDE_DIR=$i/include/v8
-      V8_LIBRARY_DIR=$i/$PHP_LIBDIR
+    if test -r "$i/$PHP_LIBDIR/$SEARCH_FOR" -a -r "$i/include/v8/v8.h"; then
+      V8_INCLUDE_DIR="$i/include/v8"
+      V8_LIBRARY_DIR="$i/$PHP_LIBDIR"
       AC_MSG_RESULT(found in $i)
     fi
 
     # Debian installations
-    if test -r $i/$PHP_LIBDIR/$ARCH-linux-gnu/$SEARCH_FOR; then
-      V8_INCLUDE_DIR=$i/include/v8
-      V8_LIBRARY_DIR=$i/$PHP_LIBDIR/$ARCH-linux-gnu
+    if test -r "$i/$PHP_LIBDIR/$ARCH-linux-gnu/$SEARCH_FOR"; then
+      V8_INCLUDE_DIR="$i/include/v8"
+      V8_LIBRARY_DIR="$i/$PHP_LIBDIR/$ARCH-linux-gnu"
       AC_MSG_RESULT(found in $i)
     fi
 
     # Manual installations
-    if test -r $i/$PHP_LIBDIR/$SEARCH_FOR && test -r $i/include/libplatform/libplatform.h; then
-      V8_INCLUDE_DIR=$i/include
-      V8_LIBRARY_DIR=$i/$PHP_LIBDIR
+    if test -r "$i/$PHP_LIBDIR/$SEARCH_FOR" -a -r "$i/include/libplatform/libplatform.h"; then
+      V8_INCLUDE_DIR="$i/include"
+      V8_LIBRARY_DIR="$i/$PHP_LIBDIR"
       AC_MSG_RESULT(found in $i)
     fi
   done
