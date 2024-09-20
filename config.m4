@@ -57,14 +57,14 @@ if test "$PHP_V8JS" != "no"; then
 
 
   AC_CACHE_CHECK(for C standard version, ac_cv_v8_cstd, [
-    ac_cv_v8_cstd="c++17"
+    ac_cv_v8_cstd="c++20"
     old_CPPFLAGS=$CPPFLAGS
     AC_LANG_PUSH([C++])
     CPPFLAGS="-std="$ac_cv_v8_cstd
     AC_RUN_IFELSE([AC_LANG_SOURCE([[int main() { return 0; }]])],[],[
-      ac_cv_v8_cstd="c++14"
+      ac_cv_v8_cstd="c++17"
       CPPFLAGS="-std="$ac_cv_v8_cstd
-      AC_RUN_IFELSE([AC_LANG_SOURCE([[int main() { return 0; }]])],[],[ ac_cv_v8_cstd="c++1y" ],[])
+      AC_RUN_IFELSE([AC_LANG_SOURCE([[int main() { return 0; }]])],[],[ ac_cv_v8_cstd="c++14" ],[])
     ],[])
     AC_LANG_POP([C++])
     CPPFLAGS=$old_CPPFLAGS
