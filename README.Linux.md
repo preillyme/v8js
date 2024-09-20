@@ -3,16 +3,18 @@ V8Js on GNU/Linux
 
 Installation of V8Js on GNU/Linux is pretty much straight forward.
 
-The biggest hurdle actually is that you need a rather new V8 library.
-However many distributions still ship the rusty version 3.14, published
-years ago.
+First you need to decide if you can go with a V8 library that is
+shipped with your GNU/Linux distribution or whether you would want
+to compile V8 on your own.
 
-This means that you usually need to compile V8 on your own before
-you can start to compile & install V8Js itself.
+Many GNU/Linux distributions, for example Debian/Ubuntu, have
+recent V8 library versions installable, that are ready to be used.
+In order to go with these, just `sudo apt-get install libv8-dev`
+(or similar, as it fits your distribution).
 
-It is recommended to install the V8 version for V8Js off your system's
-load path, so it doesn't interfere with the V8 library shipped with your
-system's distribution.
+If you compile V8 on your own, it is recommended to install the V8
+version for V8Js off your system's load path, so it doesn't interfere
+with the V8 library shipped with your system's distribution.
 
 
 Snapshots
@@ -51,12 +53,34 @@ then you
     `CPPFLAGS="-DV8_COMPRESS_POINTERS"` to the `./configure` call.
 
 
+Sandbox
+-------
+
+V8 has optional sandbox support.  You need to compile php-v8js with matching
+configurations.  If your V8 library was called with sandbox support, you
+need to pass the `-DV8_ENABLE_SANDBOX` flag to the configure call.
+
+By default V8 currently enables this feature.
+Many GNU/Linux distributions currently seem to have sandbox feature turned
+off however.
+
+If you configure it the wrong way round, you'll get runtime errors like this,
+as soon as php-v8js tries to initialize V8:
+
+```
+Embedder-vs-V8 build configuration mismatch. On embedder side sandbox is DISABLED while on V8 side it's ENABLED.
+```
+
+In order to compile V8 with sandbox support off, pass `v8_enable_sandbox=false`
+to v8gen.py invocation.
+
+
 Compile V8 5.6 and newer (using GN)
 -----------------------------------
 
 ```
 # Install required dependencies
-sudo apt-get install build-essential curl git python libglib2.0-dev
+sudo apt-get install build-essential curl git python3 libglib2.0-dev
 
 cd /tmp
 
@@ -69,8 +93,8 @@ fetch v8
 cd v8
 
 # (optional) If you'd like to build a certain version:
-git checkout 8.0.426.30
-gclient sync
+git checkout 12.0.267.36
+gclient sync -D
 
 # Setup GN
 tools/dev/v8gen.py -vv x64.release -- is_component_build=true use_custom_libcxx=false
@@ -101,7 +125,7 @@ cd /tmp
 git clone https://github.com/phpv8/v8js.git
 cd v8js
 phpize
-./configure --with-v8js=/opt/v8 LDFLAGS="-lstdc++" CPPFLAGS="-DV8_COMPRESS_POINTERS"
+./configure --with-v8js=/opt/v8 LDFLAGS="-lstdc++" CPPFLAGS="-DV8_COMPRESS_POINTERS -DV8_ENABLE_SANDBOX"
 make
 make test
 sudo make install
