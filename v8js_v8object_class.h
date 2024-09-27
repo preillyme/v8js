@@ -16,7 +16,7 @@
 
 /* {{{ Object container */
 struct v8js_v8object {
-	v8::Persistent<v8::Value> v8obj;
+	v8::Global<v8::Value> v8obj;
 	int flags;
 	struct v8js_ctx *ctx;
 	HashTable *properties;

@@ -537,7 +537,7 @@ static zend_object *v8js_v8object_new(zend_class_entry *ce) /* {{{ */
 
 	zend_object_std_init(&c->std, ce);
 	c->std.handlers = &v8js_v8object_handlers;
-	new (&c->v8obj) v8::Persistent<v8::Value>();
+	new (&c->v8obj) v8::Global<v8::Value>();
 
 	return &c->std;
 }
@@ -624,7 +624,7 @@ static zend_object *v8js_v8generator_new(zend_class_entry *ce) /* {{{ */
 
 	zend_object_std_init(&c->v8obj.std, ce);
 	c->v8obj.std.handlers = &v8js_v8generator_handlers;
-	new (&c->v8obj.v8obj) v8::Persistent<v8::Value>();
+	new (&c->v8obj.v8obj) v8::Global<v8::Value>();
 
 	return &c->v8obj.std;
 }
