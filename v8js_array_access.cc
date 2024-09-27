@@ -56,7 +56,7 @@ static zval v8js_array_access_dispatch(zend_object *object, const char *method_n
 
 
 
-void v8js_array_access_getter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& info) /* {{{ */
+v8::Intercepted v8js_array_access_getter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& info) /* {{{ */
 {
 	v8::Isolate *isolate = info.GetIsolate();
 	v8::Local<v8::Object> self = info.Holder();
@@ -70,12 +70,17 @@ void v8js_array_access_getter(uint32_t index, const v8::PropertyCallbackInfo<v8:
 	v8::Local<v8::Value> ret_value = zval_to_v8js(&php_value, isolate);
 	zval_ptr_dtor(&php_value);
 
-	info.GetReturnValue().Set(ret_value);
+	if (ret_value.IsEmpty()) {
+		return v8::Intercepted::kNo;
+	} else {
+		info.GetReturnValue().Set(ret_value);
+		return v8::Intercepted::kYes;
+	}
 }
 /* }}} */
 
-void v8js_array_access_setter(uint32_t index, v8::Local<v8::Value> value,
-								  const v8::PropertyCallbackInfo<v8::Value>& info) /* {{{ */
+v8::Intercepted v8js_array_access_setter(uint32_t index, v8::Local<v8::Value> value,
+								  const v8::PropertyCallbackInfo<void>& info) /* {{{ */
 {
 	v8::Isolate *isolate = info.GetIsolate();
 	v8::Local<v8::Object> self = info.Holder();
@@ -86,20 +91,16 @@ void v8js_array_access_setter(uint32_t index, v8::Local<v8::Value> value,
 	ZVAL_UNDEF(&zvalue);
 
 	if (v8js_to_zval(value, &zvalue, 0, isolate) != SUCCESS) {
-		info.GetReturnValue().Set(v8::Local<v8::Value>());
-		return;
+		return v8::Intercepted::kNo;
 	}
 
 	zval php_value = v8js_array_access_dispatch(object, "offsetSet", 2, index, zvalue);
 	zval_ptr_dtor(&php_value);
 
-	/* simply pass back the value to tell we intercepted the call
-	 * as the offsetSet function returns void. */
-	info.GetReturnValue().Set(value);
-
 	/* if PHP wanted to hold on to this value, zend_call_function would
 	 * have bumped the refcount. */
 	zval_ptr_dtor(&zvalue);
+	return v8::Intercepted::kYes;
 }
 /* }}} */
 
@@ -159,7 +160,7 @@ static void v8js_array_access_length(v8::Local<v8::String> property, const v8::P
 }
 /* }}} */
 
-void v8js_array_access_deleter(uint32_t index, const v8::PropertyCallbackInfo<v8::Boolean>& info) /* {{{ */
+v8::Intercepted v8js_array_access_deleter(uint32_t index, const v8::PropertyCallbackInfo<v8::Boolean>& info) /* {{{ */
 {
 	v8::Isolate *isolate = info.GetIsolate();
 	v8::Local<v8::Object> self = info.Holder();
@@ -173,10 +174,11 @@ void v8js_array_access_deleter(uint32_t index, const v8::PropertyCallbackInfo<v8
 	zval_ptr_dtor(&php_value);
 
 	info.GetReturnValue().Set(V8JS_BOOL(true));
+	return v8::Intercepted::kYes;
 }
 /* }}} */
 
-void v8js_array_access_query(uint32_t index, const v8::PropertyCallbackInfo<v8::Integer>& info) /* {{{ */
+v8::Intercepted v8js_array_access_query(uint32_t index, const v8::PropertyCallbackInfo<v8::Integer>& info) /* {{{ */
 {
 	v8::Isolate *isolate = info.GetIsolate();
 	v8::Local<v8::Object> self = info.Holder();
@@ -187,7 +189,10 @@ void v8js_array_access_query(uint32_t index, const v8::PropertyCallbackInfo<v8::
 	 * otherwise we're expected to return an empty handle. */
 	if(v8js_array_access_isset_p(object, index)) {
 		info.GetReturnValue().Set(V8JS_UINT(v8::PropertyAttribute::None));
+		return v8::Intercepted::kYes;
 	}
+
+	return v8::Intercepted::kNo;
 }
 /* }}} */
 
@@ -217,7 +222,7 @@ void v8js_array_access_enumerator(const v8::PropertyCallbackInfo<v8::Array>& inf
 
 
 
-void v8js_array_access_named_getter(v8::Local<v8::Name> property_name, const v8::PropertyCallbackInfo<v8::Value> &info) /* {{{ */
+v8::Intercepted v8js_array_access_named_getter(v8::Local<v8::Name> property_name, const v8::PropertyCallbackInfo<v8::Value> &info) /* {{{ */
 {
 	v8::Local<v8::String> property = v8::Local<v8::String>::Cast(property_name);
 	v8::Isolate *isolate = info.GetIsolate();
@@ -226,10 +231,10 @@ void v8js_array_access_named_getter(v8::Local<v8::Name> property_name, const v8:
 
 	if(strcmp(name, "length") == 0) {
 		v8js_array_access_length(property, info);
-		return;
+		return v8::Intercepted::kYes;
 	}
 
-	v8::Local<v8::Value> ret_value = v8js_named_property_callback(property, info, V8JS_PROP_GETTER);
+	v8::Local<v8::Value> ret_value = v8js_named_property_callback(info.GetIsolate(), info.Holder(), property, V8JS_PROP_GETTER);
 
 	if(ret_value.IsEmpty()) {
 		v8::Local<v8::Array> arr = v8::Array::New(isolate);
@@ -250,6 +255,7 @@ void v8js_array_access_named_getter(v8::Local<v8::Name> property_name, const v8:
 	}
 
 	info.GetReturnValue().Set(ret_value);
+	return v8::Intercepted::kYes;
 }
 /* }}} */
 

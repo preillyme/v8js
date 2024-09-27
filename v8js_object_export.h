@@ -25,11 +25,9 @@ typedef enum {
 	V8JS_PROP_DELETER
 } property_op_t;
 
-template<typename T>
-v8::Local<v8::Value> v8js_named_property_callback(v8::Local<v8::Name> property,
-						      const v8::PropertyCallbackInfo<T> &info,
-						      property_op_t callback_type,
-						      v8::Local<v8::Value> set_value = v8::Local<v8::Value>());
+v8::Local<v8::Value> v8js_named_property_callback(v8::Isolate *isolate, v8::Local<v8::Object> self,
+				v8::Local<v8::Name> property, property_op_t callback_type,
+				v8::Local<v8::Value> set_value = v8::Local<v8::Value>());
 
 void v8js_php_callback(const v8::FunctionCallbackInfo<v8::Value>& info);
 
