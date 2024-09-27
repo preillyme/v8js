@@ -543,7 +543,7 @@ static void v8js_fake_call_impl(const v8::FunctionCallbackInfo<v8::Value>& info)
 	if (!info[1]->IsArray()) {
 		error_len = spprintf(&error, 0,
 			"%s::__call expects 2nd parameter to be an array",
-			ce->name);
+			ZSTR_VAL(ce->name));
 
 		if (error_len > std::numeric_limits<int>::max()) {
 			zend_throw_exception(php_ce_v8js_exception,
@@ -607,14 +607,14 @@ static void v8js_fake_call_impl(const v8::FunctionCallbackInfo<v8::Value>& info)
 	// okay, look up the method name and manually invoke it.
 	const zend_object_handlers *h = object->handlers;
 	zend_function *method_ptr = h->get_method(&object, method_name, NULL);
-	zend_string_release(method_name);
 
 	if (method_ptr == NULL ||
 		(method_ptr->common.fn_flags & ZEND_ACC_PUBLIC) == 0 ||
 		(method_ptr->common.fn_flags & (ZEND_ACC_CTOR|ZEND_ACC_DTOR)) != 0) {
 		error_len = spprintf(&error, 0,
 			"%s::__call to %s method %s", ZSTR_VAL(ce->name),
-			(method_ptr == NULL) ? "undefined" : "non-public", method_name);
+			(method_ptr == NULL) ? "undefined" : "non-public", ZSTR_VAL(method_name));
+		zend_string_release(method_name);
 
 		if (error_len > std::numeric_limits<int>::max()) {
 			zend_throw_exception(php_ce_v8js_exception,
@@ -628,6 +628,8 @@ static void v8js_fake_call_impl(const v8::FunctionCallbackInfo<v8::Value>& info)
 		info.GetReturnValue().Set(return_value);
 		return;
 	}
+
+	zend_string_release(method_name);
 
 	v8::Local<v8::FunctionTemplate> tmpl =
 		v8::Local<v8::FunctionTemplate>::New
