@@ -857,58 +857,62 @@ v8::Local<v8::Value> v8js_named_property_callback(v8::Isolate *isolate, v8::Loca
 }
 /* }}} */
 
-static v8::Intercepted v8js_named_property_getter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value> &info) /* {{{ */
+static V8JS_INTERCEPTED v8js_named_property_getter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Value> &info) /* {{{ */
 {
 	v8::Local<v8::Value> r = v8js_named_property_callback(info.GetIsolate(), info.Holder(), property, V8JS_PROP_GETTER);
 
 	if (r.IsEmpty()) {
-		return v8::Intercepted::kNo;
+		return V8JS_INTERCEPTED_NO;
 	} else {
 		info.GetReturnValue().Set(r);
-		return v8::Intercepted::kYes;
+		return V8JS_INTERCEPTED_YES;
 	}
 }
 /* }}} */
 
-static v8::Intercepted v8js_named_property_setter(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &info) /* {{{ */
+static V8JS_INTERCEPTED v8js_named_property_setter(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const V8JS_SETTER_PROPERTY_CALLBACK_INFO &info) /* {{{ */
 {
 	v8::Local<v8::Value> r = v8js_named_property_callback(info.GetIsolate(), info.Holder(), property, V8JS_PROP_SETTER, value);
+#if PHP_V8_HAS_INTERCEPTED
 	return r.IsEmpty() ? v8::Intercepted::kNo : v8::Intercepted::kYes;
+#else
+	info.GetReturnValue().Set(r);
+#endif
 }
 /* }}} */
 
-static v8::Intercepted v8js_named_property_query(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Integer> &info) /* {{{ */
+static V8JS_INTERCEPTED v8js_named_property_query(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Integer> &info) /* {{{ */
 {
 	v8::Local<v8::Value> r = v8js_named_property_callback(info.GetIsolate(), info.Holder(), property, V8JS_PROP_QUERY);
 	if (r.IsEmpty()) {
-		return v8::Intercepted::kNo;
+		return V8JS_INTERCEPTED_NO;
 	}
 
 	v8::Isolate *isolate = info.GetIsolate();
 	v8::MaybeLocal<v8::Integer> value = r->ToInteger(isolate->GetEnteredOrMicrotaskContext());
 	if (value.IsEmpty()) {
-		return v8::Intercepted::kNo;
+		return V8JS_INTERCEPTED_NO;
 	} else {
 		info.GetReturnValue().Set(value.ToLocalChecked());
-		return v8::Intercepted::kYes;
+		return V8JS_INTERCEPTED_YES;
 	}
 }
 /* }}} */
 
-static v8::Intercepted v8js_named_property_deleter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean> &info) /* {{{ */
+static V8JS_INTERCEPTED v8js_named_property_deleter(v8::Local<v8::Name> property, const v8::PropertyCallbackInfo<v8::Boolean> &info) /* {{{ */
 {
 	v8::Local<v8::Value> r = v8js_named_property_callback(info.GetIsolate(), info.Holder(), property, V8JS_PROP_DELETER);
 	if (r.IsEmpty()) {
-		return v8::Intercepted::kNo;
+		return V8JS_INTERCEPTED_NO;
 	}
 
 	v8::Isolate *isolate = info.GetIsolate();
 	v8::Local<v8::Boolean> value = r->ToBoolean(isolate);
 	if (value.IsEmpty()) {
-		return v8::Intercepted::kNo;
+		return V8JS_INTERCEPTED_NO;
 	} else {
 		info.GetReturnValue().Set(value);
-		return v8::Intercepted::kYes;
+		return V8JS_INTERCEPTED_YES;
 	}
 }
 /* }}} */
@@ -951,7 +955,11 @@ static v8::MaybeLocal<v8::Object> v8js_wrap_object(v8::Isolate *isolate, zend_cl
 			/* We'll free persist_tpl_ when template_cache is destroyed */
 
 			v8::Local<v8::ObjectTemplate> inst_tpl = new_tpl->InstanceTemplate();
+#if PHP_V8_HAS_INTERCEPTED
 			v8::NamedPropertyGetterCallback getter = v8js_named_property_getter;
+#else
+			v8::GenericNamedPropertyGetterCallback getter = v8js_named_property_getter;
+#endif
 			v8::GenericNamedPropertyEnumeratorCallback enumerator = v8js_named_property_enumerator;
 
 			/* Check for ArrayAccess object */

@@ -502,7 +502,11 @@ V8JS_METHOD(require)
 
 	// Set script identifier
 	v8::Local<v8::String> sname = V8JS_STR(normalised_module_id);
+#if PHP_V8_API_VERSION >= 12002000
 	v8::ScriptOrigin origin(sname);
+#else
+	v8::ScriptOrigin origin(c->isolate, sname);
+#endif
 
 	if (Z_STRLEN(module_code) > std::numeric_limits<int>::max()) {
 		zend_throw_exception(php_ce_v8js_exception,

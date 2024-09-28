@@ -113,6 +113,22 @@ int v8js_get_properties_hash(v8::Local<v8::Value> jsValue, HashTable *retval, in
 #define IS_LONG 99
 #endif
 
+#define PHP_V8_HAS_INTERCEPTED PHP_V8_API_VERSION >= 12005000
+
+#if PHP_V8_HAS_INTERCEPTED
+#define V8JS_INTERCEPTED			v8::Intercepted
+#define V8JS_INTERCEPTED_YES		v8::Intercepted::kYes
+#define V8JS_INTERCEPTED_NO			v8::Intercepted::kNo
+#define V8JS_SETTER_PROPERTY_CALLBACK_INFO	v8::PropertyCallbackInfo<void>
+
+#else
+#define V8JS_INTERCEPTED			void
+#define V8JS_INTERCEPTED_YES
+#define V8JS_INTERCEPTED_NO
+#define V8JS_SETTER_PROPERTY_CALLBACK_INFO	v8::PropertyCallbackInfo<v8::Value>
+
+#endif
+
 
 #endif /* V8JS_V8_H */
 

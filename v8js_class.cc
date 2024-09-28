@@ -524,7 +524,11 @@ static void v8js_compile_script(zval *this_ptr, const zend_string *str, const ze
 	v8::Local<v8::String> sname = identifier
 		? V8JS_ZSTR(identifier)
 		: V8JS_SYM("V8Js::compileString()");
+#if PHP_V8_API_VERSION >= 12002000
 	v8::ScriptOrigin origin(sname);
+#else
+	v8::ScriptOrigin origin(c->isolate, sname);
+#endif
 
 	if (ZSTR_LEN(str) > std::numeric_limits<int>::max()) {
 		zend_throw_exception(php_ce_v8js_exception,
