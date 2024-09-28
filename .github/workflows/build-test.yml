@@ -37,13 +37,13 @@ jobs:
                     php-version: ${{ matrix.php-versions }}
                     coverage: none
 
+            -   name: Setup Google depot tools
+                uses: newkdev/setup-depot-tools@v1.0.1
+
             -   name: Build v8 ${{ matrix.v8-versions }}
                 run: |
                     # Store extra tools somewhere undisturbing
                     cd "$(mktemp -d)"
-
-                    git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
-                    export PATH=`pwd`/depot_tools:"$PATH"
 
                     fetch v8
                     cd v8
