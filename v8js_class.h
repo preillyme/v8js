@@ -17,10 +17,10 @@
 
 
 /* Abbreviate long type names */
-typedef v8::Persistent<v8::FunctionTemplate, v8::CopyablePersistentTraits<v8::FunctionTemplate> > v8js_function_tmpl_t;
-typedef v8::Persistent<v8::ObjectTemplate, v8::CopyablePersistentTraits<v8::ObjectTemplate> > v8js_object_tmpl_t;
-typedef v8::Persistent<v8::Object, v8::CopyablePersistentTraits<v8::Object> > v8js_persistent_obj_t;
-typedef v8::Persistent<v8::Value, v8::CopyablePersistentTraits<v8::Value> > v8js_persistent_value_t;
+typedef v8::Global<v8::FunctionTemplate> v8js_function_tmpl_t;
+typedef v8::Global<v8::ObjectTemplate> v8js_object_tmpl_t;
+typedef v8::Global<v8::Object> v8js_persistent_obj_t;
+typedef v8::Global<v8::Value> v8js_persistent_value_t;
 
 /* Forward declarations */
 struct v8js_v8object;
@@ -35,8 +35,8 @@ struct cmp_str {
 
 /* {{{ Context container */
 struct v8js_ctx {
-  v8::Persistent<v8::String> object_name;
-  v8::Persistent<v8::Context> context;
+  v8::Global<v8::String> object_name;
+  v8::Global<v8::Context> context;
   int in_execution;
   v8::Isolate *isolate;
 

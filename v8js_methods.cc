@@ -405,7 +405,7 @@ V8JS_METHOD(require)
 
     // If we have already loaded and cached this module then use it
 	if (c->modules_loaded.count(normalised_module_id) > 0) {
-		v8::Persistent<v8::Value> newobj;
+		v8::Global<v8::Value> newobj;
 		newobj.Reset(isolate, c->modules_loaded[normalised_module_id]);
 
 		// TODO store v8::Global in c->modules_loaded directly!?
@@ -502,7 +502,11 @@ V8JS_METHOD(require)
 
 	// Set script identifier
 	v8::Local<v8::String> sname = V8JS_STR(normalised_module_id);
-	v8::ScriptOrigin origin(isolate, sname);
+#if PHP_V8_API_VERSION >= 12002000
+	v8::ScriptOrigin origin(sname);
+#else
+	v8::ScriptOrigin origin(c->isolate, sname);
+#endif
 
 	if (Z_STRLEN(module_code) > std::numeric_limits<int>::max()) {
 		zend_throw_exception(php_ce_v8js_exception,

@@ -53,7 +53,7 @@ extern const zend_function_entry v8js_methods[];
 typedef struct _v8js_script {
 	char *name;
 	v8js_ctx *ctx;
-	v8::Persistent<v8::Script, v8::CopyablePersistentTraits<v8::Script>> *script;
+	v8::Global<v8::Script> *script;
 } v8js_script;
 
 static void v8js_script_free(v8js_script *res);
@@ -95,11 +95,11 @@ static void v8js_free_storage(zend_object *object) /* {{{ */
 	}
 
 	c->object_name.Reset();
-	c->object_name.~Persistent();
+	c->object_name.~Global();
 	c->global_template.Reset();
-	c->global_template.~Persistent();
+	c->global_template.~Global();
 	c->array_tmpl.Reset();
-	c->array_tmpl.~Persistent();
+	c->array_tmpl.~Global();
 
 	/* Clear persistent call_impl & method_tmpls templates */
 	for (std::map<v8js_function_tmpl_t *, v8js_function_tmpl_t>::iterator it = c->call_impls.begin();
@@ -133,7 +133,7 @@ static void v8js_free_storage(zend_object *object) /* {{{ */
 	if (!c->context.IsEmpty()) {
 		c->context.Reset();
 	}
-	c->context.~Persistent();
+	c->context.~Global();
 
 	/* Dispose yet undisposed weak refs */
 	for (std::map<zend_object *, v8js_persistent_obj_t>::iterator it = c->weak_objects.begin();
@@ -208,10 +208,10 @@ static zend_object* v8js_new(zend_class_entry *ce) /* {{{ */
 
 	c->std.handlers = &v8js_object_handlers;
 
-	new(&c->object_name) v8::Persistent<v8::String>();
-	new(&c->context) v8::Persistent<v8::Context>();
-	new(&c->global_template) v8::Persistent<v8::FunctionTemplate>();
-	new(&c->array_tmpl) v8::Persistent<v8::FunctionTemplate>();
+	new(&c->object_name) v8::Global<v8::String>();
+	new(&c->context) v8::Global<v8::Context>();
+	new(&c->global_template) v8::Global<v8::FunctionTemplate>();
+	new(&c->array_tmpl) v8::Global<v8::FunctionTemplate>();
 
 	new(&c->modules_stack) std::vector<char*>();
 	new(&c->modules_loaded) std::map<char *, v8js_persistent_value_t, cmp_str>;
@@ -524,7 +524,11 @@ static void v8js_compile_script(zval *this_ptr, const zend_string *str, const ze
 	v8::Local<v8::String> sname = identifier
 		? V8JS_ZSTR(identifier)
 		: V8JS_SYM("V8Js::compileString()");
-	v8::ScriptOrigin origin(isolate, sname);
+#if PHP_V8_API_VERSION >= 12002000
+	v8::ScriptOrigin origin(sname);
+#else
+	v8::ScriptOrigin origin(c->isolate, sname);
+#endif
 
 	if (ZSTR_LEN(str) > std::numeric_limits<int>::max()) {
 		zend_throw_exception(php_ce_v8js_exception,
@@ -541,7 +545,7 @@ static void v8js_compile_script(zval *this_ptr, const zend_string *str, const ze
 		return;
 	}
 	res = (v8js_script *)emalloc(sizeof(v8js_script));
-	res->script = new v8::Persistent<v8::Script, v8::CopyablePersistentTraits<v8::Script>>(c->isolate, script.ToLocalChecked());
+	res->script = new v8::Global<v8::Script>(c->isolate, script.ToLocalChecked());
 
 	v8::String::Utf8Value _sname(isolate, sname);
 	res->name = estrndup(ToCString(_sname), _sname.length());

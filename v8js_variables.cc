@@ -25,7 +25,7 @@ extern "C" {
 #include "zend_exceptions.h"
 }
 
-static void v8js_fetch_php_variable(v8::Local<v8::String> name, const v8::PropertyCallbackInfo<v8::Value>& info) /* {{{ */
+static void v8js_fetch_php_variable(v8::Local<v8::Name> name, const v8::PropertyCallbackInfo<v8::Value>& info) /* {{{ */
 {
     v8::Local<v8::External> data = v8::Local<v8::External>::Cast(info.Data());
     v8js_accessor_ctx *ctx = static_cast<v8js_accessor_ctx *>(data->Value());
@@ -80,7 +80,7 @@ void v8js_register_accessors(std::vector<v8js_accessor_ctx*> *accessor_list, v8:
         ctx->isolate = isolate;
 
 		/* Set the variable fetch callback for given symbol on named property */
-		php_obj->SetAccessor(V8JS_STRL(ZSTR_VAL(property_name), static_cast<int>(ZSTR_LEN(property_name))), v8js_fetch_php_variable, NULL, v8::External::New(isolate, ctx));
+		php_obj->SetNativeDataProperty(V8JS_STRL(ZSTR_VAL(property_name), static_cast<int>(ZSTR_LEN(property_name))), v8js_fetch_php_variable, NULL, v8::External::New(isolate, ctx), v8::PropertyAttribute::ReadOnly);
 
 		/* record the context so we can free it later */
 		accessor_list->push_back(ctx);
