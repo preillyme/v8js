@@ -1,0 +1,91 @@
+name: Test building extension
+
+on:
+    - push
+
+permissions:
+    contents: read
+
+jobs:
+    build:
+        strategy:
+            matrix:
+                operating-system:
+                    - ubuntu-latest
+#                    - windows-latest
+#                    - macos-latest
+                php-versions:
+#                    - '8.1'
+#                    - '8.2'
+                    - '8.3'
+#                    - '8.4'
+                v8-versions:
+                    - 10.9.194
+#                    - 11.9.172
+                    - 12.9.203
+#                    - 13.1.104
+
+        runs-on: ${{ matrix.operating-system }}
+
+        steps:
+            -   name: Checkout code
+                uses: actions/checkout@v2
+
+            -   name: Setup PHP
+                uses: shivammathur/setup-php@v2
+                with:
+                    php-version: ${{ matrix.php-versions }}
+                    coverage: none
+
+            -   name: Restore cache v8 ${{ matrix.v8-versions }} build
+                id: v8-build-cache
+                uses: actions/cache/restore@v4
+                with:
+                    path: /opt/v8/self-built
+                    key: ${{ runner.os }}-${{ matrix.v8-versions }}-v8-build
+
+            -   name: Setup Google depot tools
+                # only needed, when v8 needs to be built
+                if: steps.v8-build-cache.outputs.cache-hit != 'true'
+                uses: newkdev/setup-depot-tools@v1.0.1
+
+            -   name: Build v8 ${{ matrix.v8-versions }}
+                if: steps.v8-build-cache.outputs.cache-hit != 'true'
+                run: |
+                    # Store extra tools somewhere undisturbing
+                    cd "$(mktemp -d)"
+
+                    fetch v8
+                    cd v8
+
+                    git checkout ${{ matrix.v8-versions }}
+                    gclient sync -D
+
+                    # Setup GN
+                    # Warnings are no errors - @see https://issues.chromium.org/issues/42203398#comment9
+                    tools/dev/v8gen.py -vv x64.release -- is_component_build=true use_custom_libcxx=false treat_warnings_as_errors=false
+
+                    # Build
+                    ninja -C out.gn/x64.release/
+
+                    # Install to /opt/v8/self-built
+                    sudo mkdir -p /opt/v8/self-built/{lib,include}
+                    sudo cp out.gn/x64.release/lib*.so out.gn/x64.release/*_blob.bin out.gn/x64.release/icudtl.dat /opt/v8/self-built/lib/
+                    sudo cp -R include/* /opt/v8/self-built/include/
+
+                    # Go back to origin
+                    cd "${GITHUB_WORKSPACE}"
+
+            -   name: Save v8 ${{ matrix.v8-versions }} build cache
+                if: steps.v8-build-cache.outputs.cache-hit != 'true'
+                uses: actions/cache/save@v4
+                with:
+                    path: /opt/v8/self-built
+                    key: ${{ steps.v8-build-cache.outputs.cache-primary-key }}
+
+            -   name: Build extension
+                run: |
+                    phpize
+                    ./configure --with-v8js=/opt/v8/self-built LDFLAGS="-lstdc++" CPPFLAGS="-DV8_COMPRESS_POINTERS -DV8_ENABLE_SANDBOX"
+                    make
+                    make test
