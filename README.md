@@ -1,8 +1,7 @@
 V8Js
 ====
 
-[![Build Status](https://travis-ci.org/phpv8/v8js.svg?branch=php7)](https://travis-ci.org/phpv8/v8js)
-[![Test building extension](https://github.com/JoshuaBehrens/v8js/actions/workflows/build-test.yml/badge.svg)](https://github.com/JoshuaBehrens/v8js/actions/workflows/build-test.yml)
+[![Test building extension](https://github.com/phpv8/v8js/actions/workflows/build-test.yml/badge.svg)](https://github.com/phpv8/v8js/actions/workflows/build-test.yml)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/phpv8/v8js/master/LICENSE)
 [![Join the chat at https://gitter.im/phpv8/v8js](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/phpv8/v8js?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 

@@ -41,7 +41,6 @@ tests/*.php
 tests/*.sh
 tests/*.mem
 
-.vagrant
 tmp-php.ini
 
 coverage_report/**
