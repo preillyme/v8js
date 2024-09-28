@@ -37,10 +37,20 @@ jobs:
                     php-version: ${{ matrix.php-versions }}
                     coverage: none
 
+            -   name: Restore cache v8 ${{ matrix.v8-versions }} build
+                id: v8-build-cache
+                uses: actions/cache/restore@v4
+                with:
+                    path: /opt/v8/self-built
+                    key: ${{ runner.os }}-${{ matrix.v8-versions }}-v8-build
+
             -   name: Setup Google depot tools
+                # only needed, when v8 needs to be built
+                if: steps.v8-build-cache.outputs.cache-hit != 'true'
                 uses: newkdev/setup-depot-tools@v1.0.1
 
             -   name: Build v8 ${{ matrix.v8-versions }}
+                if: steps.v8-build-cache.outputs.cache-hit != 'true'
                 run: |
                     # Store extra tools somewhere undisturbing
                     cd "$(mktemp -d)"
@@ -65,6 +75,13 @@ jobs:
 
                     # Go back to origin
                     cd "${GITHUB_WORKSPACE}"
+
+            -   name: Save v8 ${{ matrix.v8-versions }} build cache
+                if: steps.v8-build-cache.outputs.cache-hit != 'true'
+                uses: actions/cache/save@v4
+                with:
+                    path: /opt/v8/self-built
+                    key: ${{ steps.v8-build-cache.outputs.cache-primary-key }}
 
             -   name: Build extension
                 run: |
