@@ -26,7 +26,6 @@ if test "$PHP_V8JS" != "no"; then
     ARCH=$(uname -m)
 
     for i in $SEARCH_PATH ; do
-    echo checking "$i/$PHP_LIBDIR/$SEARCH_FOR" -a -r "$i/include/$libname/v8.h"
       if test -r "$i/$PHP_LIBDIR/$SEARCH_FOR" -a -r "$i/include/$libname/v8.h"; then
         V8_INCLUDE_DIR="$i/include/$libname"
         V8_LIBRARY_DIR="$i/$PHP_LIBDIR"
