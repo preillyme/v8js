@@ -1,7 +1,13 @@
 --TEST--
 Test V8::executeString() : Use ArrayAccess with JavaScript native push method
 --SKIPIF--
-<?php require_once(dirname(__FILE__) . '/skipif.inc'); ?>
+<?php require_once(dirname(__FILE__) . '/skipif.inc');
+
+if (str_starts_with(V8Js::V8_VERSION, '11.3.244.8')) {
+    die("skip V8 version known to call setter twice");
+}
+
+?>
 --INI--
 v8js.use_array_access = 1
 --FILE--
