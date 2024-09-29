@@ -1,7 +1,12 @@
 name: Test building extension
 
 on:
-    - push
+    pull_request:
+        branches:
+            - php8
+    push:
+        branches:
+            - php8
 
 permissions:
     contents: read
