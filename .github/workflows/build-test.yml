@@ -94,3 +94,45 @@ jobs:
                     ./configure --with-v8js=/opt/v8/self-built LDFLAGS="-lstdc++" CPPFLAGS="-DV8_COMPRESS_POINTERS -DV8_ENABLE_SANDBOX"
                     make
                     make test
+
+            -   name: Archive test results
+                if: failure()
+                uses: actions/upload-artifact@v4
+                with:
+                    name: phpt-test-results
+                    path: |
+                        php_test_results*.txt
+                        tests/*.out
+
+    alpine:
+        runs-on: ubuntu-latest
+
+        steps:
+            -   name: Checkout code
+                uses: actions/checkout@v2
+
+            -   name: Setup latest Alpine Linux
+                uses: jirutka/setup-alpine@v1
+
+            -   name: Install dependencies
+                run: |
+                    cat /etc/alpine-release
+                    apk add php83-dev nodejs-dev g++ make
+                shell: alpine.sh --root {0}
+
+            -   name: Build extension
+                run: |
+                    phpize
+                    ./configure
+                    make
+                    make test
+                shell: alpine.sh {0}
+
+            -   name: Archive test results
+                if: failure()
+                uses: actions/upload-artifact@v4
+                with:
+                    name: phpt-test-results
+                    path: |
+                        php_test_results*.txt
+                        tests/*.out
