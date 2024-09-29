@@ -3,46 +3,53 @@ PHP_ARG_WITH(v8js, for V8 Javascript Engine,
 
 if test "$PHP_V8JS" != "no"; then
   SEARCH_PATH="/usr/local /usr"
-  SEARCH_FOR="libv8.$SHLIB_SUFFIX_NAME"
 
-  if test -d "$PHP_V8JS"; then
-    SEARCH_PATH="$PHP_V8JS"
+  for libname in v8 node; do
+    SEARCH_FOR="lib$libname.$SHLIB_SUFFIX_NAME"
 
-    # set rpath, so library loader picks up libv8 even if it's not on the
-    # system's library search path
-    case $host_os in
-      darwin* )
-        # MacOS does not support --rpath
-        ;;
-      * )
-        LDFLAGS="$LDFLAGS -Wl,--rpath=$PHP_V8JS/$PHP_LIBDIR"
-        ;;
-    esac
-  fi
+    if test -d "$PHP_V8JS"; then
+      SEARCH_PATH="$PHP_V8JS"
 
-  AC_MSG_CHECKING([for V8 files in default path])
-  ARCH=$(uname -m)
-
-  for i in $SEARCH_PATH ; do
-    if test -r "$i/$PHP_LIBDIR/$SEARCH_FOR" -a -r "$i/include/v8/v8.h"; then
-      V8_INCLUDE_DIR="$i/include/v8"
-      V8_LIBRARY_DIR="$i/$PHP_LIBDIR"
-      AC_MSG_RESULT(found in $i)
+      # set rpath, so library loader picks up libv8 even if it's not on the
+      # system's library search path
+      case $host_os in
+        darwin* )
+          # MacOS does not support --rpath
+          ;;
+        * )
+          LDFLAGS="$LDFLAGS -Wl,--rpath=$PHP_V8JS/$PHP_LIBDIR"
+          ;;
+      esac
     fi
 
-    # Debian installations
-    if test -r "$i/$PHP_LIBDIR/$ARCH-linux-gnu/$SEARCH_FOR"; then
-      V8_INCLUDE_DIR="$i/include/v8"
-      V8_LIBRARY_DIR="$i/$PHP_LIBDIR/$ARCH-linux-gnu"
-      AC_MSG_RESULT(found in $i)
-    fi
+    AC_MSG_CHECKING([for V8 files in default path])
+    ARCH=$(uname -m)
 
-    # Manual installations
-    if test -r "$i/$PHP_LIBDIR/$SEARCH_FOR" -a -r "$i/include/libplatform/libplatform.h"; then
-      V8_INCLUDE_DIR="$i/include"
-      V8_LIBRARY_DIR="$i/$PHP_LIBDIR"
-      AC_MSG_RESULT(found in $i)
-    fi
+    for i in $SEARCH_PATH ; do
+    echo checking "$i/$PHP_LIBDIR/$SEARCH_FOR" -a -r "$i/include/$libname/v8.h"
+      if test -r "$i/$PHP_LIBDIR/$SEARCH_FOR" -a -r "$i/include/$libname/v8.h"; then
+        V8_INCLUDE_DIR="$i/include/$libname"
+        V8_LIBRARY_DIR="$i/$PHP_LIBDIR"
+        AC_MSG_RESULT(found in $i)
+        break 2
+      fi
+
+      # Debian installations
+      if test -r "$i/$PHP_LIBDIR/$ARCH-linux-gnu/$SEARCH_FOR"; then
+        V8_INCLUDE_DIR="$i/include/$libname"
+        V8_LIBRARY_DIR="$i/$PHP_LIBDIR/$ARCH-linux-gnu"
+        AC_MSG_RESULT(found in $i)
+        break 2
+      fi
+
+      # Manual installations
+      if test -r "$i/$PHP_LIBDIR/$SEARCH_FOR" -a -r "$i/include/libplatform/libplatform.h"; then
+        V8_INCLUDE_DIR="$i/include"
+        V8_LIBRARY_DIR="$i/$PHP_LIBDIR"
+        AC_MSG_RESULT(found in $i)
+        break 2
+      fi
+    done
   done
 
   AC_DEFINE_UNQUOTED([PHP_V8_EXEC_PATH], "$V8_LIBRARY_DIR/$SEARCH_FOR", [Full path to libv8 library file])
@@ -53,8 +60,9 @@ if test "$PHP_V8JS" != "no"; then
   fi
 
   PHP_ADD_INCLUDE($V8_INCLUDE_DIR)
-  PHP_ADD_LIBRARY_WITH_PATH(v8, $V8_LIBRARY_DIR, V8JS_SHARED_LIBADD)
+  PHP_ADD_LIBRARY_WITH_PATH($libname, $V8_LIBRARY_DIR, V8JS_SHARED_LIBADD)
   PHP_SUBST(V8JS_SHARED_LIBADD)
+
   PHP_REQUIRE_CXX()
 
 
@@ -112,26 +120,28 @@ if test "$PHP_V8JS" != "no"; then
   CPPFLAGS="$CPPFLAGS -I$V8_INCLUDE_DIR -std=$ac_cv_v8_cstd"
   LDFLAGS="$LDFLAGS -L$V8_LIBRARY_DIR"
 
-  AC_MSG_CHECKING([for libv8_libplatform])
-  AC_DEFUN([V8_CHECK_LINK], [
-    save_LIBS="$LIBS"
-    LIBS="$LIBS $1 -lv8_libplatform -lv8"
-    AC_LINK_IFELSE([AC_LANG_PROGRAM([
-      #include <libplatform/libplatform.h>
-    ], [ v8::platform::NewDefaultPlatform(); ])], [
-      dnl libv8_libplatform.so found
-      AC_MSG_RESULT(found)
-      V8JS_SHARED_LIBADD="$1 -lv8_libplatform $V8JS_SHARED_LIBADD"
-        $3
-    ], [ $4 ])
-    LIBS="$save_LIBS"
-  ])
-
-  V8_CHECK_LINK([], [], [], [
-    V8_CHECK_LINK([-lv8_libbase], [], [], [
-      AC_MSG_ERROR([could not find libv8_libplatform library])
+  if test "$libname" = "v8"; then
+    AC_MSG_CHECKING([for libv8_libplatform])
+    AC_DEFUN([V8_CHECK_LINK], [
+      save_LIBS="$LIBS"
+      LIBS="$LIBS $1 -lv8_libplatform -lv8"
+      AC_LINK_IFELSE([AC_LANG_PROGRAM([
+        #include <libplatform/libplatform.h>
+      ], [ v8::platform::NewDefaultPlatform(); ])], [
+        dnl libv8_libplatform.so found
+        AC_MSG_RESULT(found)
+        V8JS_SHARED_LIBADD="$1 -lv8_libplatform $V8JS_SHARED_LIBADD"
+          $3
+      ], [ $4 ])
+      LIBS="$save_LIBS"
     ])
-  ])
+
+    V8_CHECK_LINK([], [], [], [
+      V8_CHECK_LINK([-lv8_libbase], [], [], [
+        AC_MSG_ERROR([could not find libv8_libplatform library])
+      ])
+    ])
+  fi
 
 
   dnl
