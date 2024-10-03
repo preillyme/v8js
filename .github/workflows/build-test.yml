@@ -12,7 +12,7 @@ permissions:
     contents: read
 
 jobs:
-    build:
+    self-built-v8:
         strategy:
             matrix:
                 operating-system:
@@ -104,7 +104,7 @@ jobs:
                         php_test_results*.txt
                         tests/*.out
 
-    alpine:
+    alpine-package-manager-apk:
         runs-on: ubuntu-latest
 
         steps:
