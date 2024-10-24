@@ -99,7 +99,7 @@ jobs:
                 if: failure()
                 uses: actions/upload-artifact@v4
                 with:
-                    name: phpt-test-results
+                    name: phpt-test-results-on-${{ runner.os }}-${{ matrix.v8-versions }}-${{ matrix.php-versions }}
                     path: |
                         php_test_results*.txt
                         tests/*.out
@@ -132,7 +132,7 @@ jobs:
                 if: failure()
                 uses: actions/upload-artifact@v4
                 with:
-                    name: phpt-test-results
+                    name: phpt-test-results-on-alpine
                     path: |
                         php_test_results*.txt
                         tests/*.out
@@ -175,7 +175,7 @@ jobs:
                 if: failure()
                 uses: actions/upload-artifact@v4
                 with:
-                    name: phpt-test-results
+                    name: phpt-test-results-on-macos-brew-${{ matrix.php-versions }}
                     path: |
                         php_test_results*.txt
                         tests/*.out
