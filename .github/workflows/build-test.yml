@@ -12,19 +12,14 @@ permissions:
     contents: read
 
 jobs:
-    self-built-v8:
+    self-built-v8-cache-warmup:
         strategy:
             matrix:
-                operating-system:
+                operating-system: # &self-built-v8-operating-systems
                     - ubuntu-latest
 #                    - windows-latest
                     - macos-latest
-                php-versions:
-#                    - '8.1'
-                    - '8.2'
-                    - '8.3'
-                    - '8.4'
-                v8-versions:
+                v8-versions: # &self-built-v8-v8-versions
                     - 10.9.194
 #                    - 11.9.172
                     - 12.9.203
@@ -33,15 +28,6 @@ jobs:
         runs-on: ${{ matrix.operating-system }}
 
         steps:
-            -   name: Checkout code
-                uses: actions/checkout@v2
-
-            -   name: Setup PHP
-                uses: shivammathur/setup-php@v2
-                with:
-                    php-version: ${{ matrix.php-versions }}
-                    coverage: none
-
             -   name: Restore cache v8 ${{ matrix.v8-versions }} build
                 id: v8-build-cache
                 uses: actions/cache/restore@v4
@@ -87,6 +73,44 @@ jobs:
                 with:
                     path: /opt/v8/self-built
                     key: ${{ steps.v8-build-cache.outputs.cache-primary-key }}
+
+    self-built-v8:
+        needs: self-built-v8-cache-warmup
+
+        strategy:
+            matrix:
+                operating-system: # *self-built-v8-operating-systems
+                    - ubuntu-latest
+#                    - windows-latest
+                    - macos-latest
+                v8-versions: # *self-built-v8-v8-versions
+                    - 10.9.194
+#                    - 11.9.172
+                    - 12.9.203
+#                    - 13.1.104
+                php-versions:
+#                    - '8.1'
+                    - '8.2'
+                    - '8.3'
+                    - '8.4'
+
+        runs-on: ${{ matrix.operating-system }}
+
+        steps:
+            -   name: Checkout code
+                uses: actions/checkout@v2
+
+            -   name: Setup PHP
+                uses: shivammathur/setup-php@v2
+                with:
+                    php-version: ${{ matrix.php-versions }}
+                    coverage: none
+
+            -   name: Download cache v8 ${{ matrix.v8-versions }} build
+                uses: actions/cache/restore@v4
+                with:
+                    path: /opt/v8/self-built
+                    key: ${{ runner.os }}-${{ matrix.v8-versions }}-v8-build
 
             -   name: Build extension
                 run: |
