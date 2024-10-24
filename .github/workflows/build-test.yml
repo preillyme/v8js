@@ -61,7 +61,13 @@ jobs:
 
                     # Install to /opt/v8/self-built
                     sudo mkdir -p /opt/v8/self-built/{lib,include}
-                    sudo cp out.gn/x64.release/lib*.so out.gn/x64.release/*_blob.bin out.gn/x64.release/icudtl.dat /opt/v8/self-built/lib/
+
+                    if [[ "${{ runner.os }}" == "macOS" ]]; then
+                        LIB_EXT=dylib
+                    else
+                        LIB_EXT=so
+                    fi
+                    sudo cp out.gn/x64.release/lib*.${LIB_EXT} out.gn/x64.release/*_blob.bin out.gn/x64.release/icudtl.dat /opt/v8/self-built/lib/
                     sudo cp -R include/* /opt/v8/self-built/include/
 
                     # Go back to origin
