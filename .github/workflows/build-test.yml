@@ -52,9 +52,9 @@ jobs:
                     cd "$(mktemp -d)"
 
                     ARCH=$(uname -m)
-                    fetch v8
+                    fetch --nohooks --no-history v8
                     cd v8
-
+                    git fetch --tag origin refs/tags/${{ matrix.v8-versions }}
                     git checkout ${{ matrix.v8-versions }}
                     gclient sync -D
 
