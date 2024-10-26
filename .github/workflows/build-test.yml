@@ -51,6 +51,7 @@ jobs:
                     # Store extra tools somewhere undisturbing
                     cd "$(mktemp -d)"
 
+                    ARCH=$(uname -m)
                     fetch v8
                     cd v8
 
@@ -59,17 +60,17 @@ jobs:
 
                     # Setup GN
                     # Warnings are no errors - @see https://issues.chromium.org/issues/42203398#comment9
-                    tools/dev/v8gen.py -vv x64.release -- is_component_build=true use_custom_libcxx=false treat_warnings_as_errors=false
+                    tools/dev/v8gen.py -vv ${ARCH}.release -- is_component_build=true use_custom_libcxx=false treat_warnings_as_errors=false
 
                     # Build
-                    ninja -C out.gn/x64.release/
+                    ninja -C out.gn/${ARCH}.release/
 
                     if [[ "${{ runner.os }}" == "macOS" ]]; then
                         LIB_EXT=dylib
                     else
                         LIB_EXT=so
                     fi
-                    cp out.gn/x64.release/lib*.${LIB_EXT} out.gn/x64.release/*_blob.bin out.gn/x64.release/icudtl.dat /opt/v8/self-built/lib/
+                    cp out.gn/${ARCH}.release/lib*.${LIB_EXT} out.gn/${ARCH}.release/*_blob.bin out.gn/${ARCH}.release/icudtl.dat /opt/v8/self-built/lib/
                     cp -R include/* /opt/v8/self-built/include/
 
                     # Go back to origin
