@@ -28,6 +28,11 @@ jobs:
         runs-on: ${{ matrix.operating-system }}
 
         steps:
+            -   name: Prepare cache folder v8 ${{ matrix.v8-versions }}
+                run: |
+                    sudo mkdir -p /opt/v8/self-built/{lib,include}
+                    sudo chown -R $(id -u):$(id -g) /opt/v8/self-built
+
             -   name: Restore cache v8 ${{ matrix.v8-versions }} build
                 id: v8-build-cache
                 uses: actions/cache/restore@v4
@@ -59,16 +64,13 @@ jobs:
                     # Build
                     ninja -C out.gn/x64.release/
 
-                    # Install to /opt/v8/self-built
-                    sudo mkdir -p /opt/v8/self-built/{lib,include}
-
                     if [[ "${{ runner.os }}" == "macOS" ]]; then
                         LIB_EXT=dylib
                     else
                         LIB_EXT=so
                     fi
-                    sudo cp out.gn/x64.release/lib*.${LIB_EXT} out.gn/x64.release/*_blob.bin out.gn/x64.release/icudtl.dat /opt/v8/self-built/lib/
-                    sudo cp -R include/* /opt/v8/self-built/include/
+                    cp out.gn/x64.release/lib*.${LIB_EXT} out.gn/x64.release/*_blob.bin out.gn/x64.release/icudtl.dat /opt/v8/self-built/lib/
+                    cp -R include/* /opt/v8/self-built/include/
 
                     # Go back to origin
                     cd "${GITHUB_WORKSPACE}"
