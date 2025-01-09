@@ -14,10 +14,10 @@ permissions:
 jobs:
     build:
         strategy:
-            matrix:
-                # set in accordance with number of v8-versions, so caching can kick in properly
-                max-parallel: 2
+            # set in accordance with number of v8-versions, so caching can kick in properly
+            max-parallel: 2
 
+            matrix:
                 operating-system:
                     - ubuntu-latest
 #                    - windows-latest
