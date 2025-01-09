@@ -7,7 +7,7 @@ Test V8Js::setModuleLoader : Handle fatal errors gracefully
 $v8 = new V8Js();
 
 $v8->setModuleLoader(function() {
-    trigger_error('some fatal error', E_USER_ERROR);
+    @trigger_error('some fatal error', E_USER_ERROR);
 });
 
 $v8->executeString(' require("foo"); ');

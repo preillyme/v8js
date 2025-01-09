@@ -20,13 +20,13 @@ $v8->executeString($JS, 'module.js', V8Js::FLAG_PROPAGATE_PHP_EXCEPTIONS);
 --EXPECTF--
 Fatal error: Uncaught Exception: some exception in %s%ecommonjs_exception_001.php:9
 Stack trace:
-#0 [internal function]: {closure}('test')
+#0 [internal function]: {closur%s}('test')
 #1 %s%ecommonjs_exception_001.php(12): V8Js->executeString('var foo = requi...', 'module.js', 4)
 #2 {main}
 
 Next V8JsScriptException: module.js:1: Exception: some exception in %s%ecommonjs_exception_001.php:9
 Stack trace:
-#0 [internal function]: {closure}('test')
+#0 [internal function]: {closur%s}('test')
 #1 %s%ecommonjs_exception_001.php(12): V8Js->executeString('var foo = requi...', 'module.js', 4)
 #2 {main} in %s%ecommonjs_exception_001.php:12
 Stack trace:

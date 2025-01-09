@@ -37,7 +37,7 @@ int(23)
 
 Fatal error: Uncaught Exception: this shall not work in %s
 Stack trace:
-#0 [internal function]: {closure}()
+#0 [internal function]: {closur%s}()
 #1 [internal function]: Closure->__invoke()
 #2 %s: V8Generator->next()
 #3 {main}

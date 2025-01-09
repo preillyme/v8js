@@ -25,7 +25,7 @@ $js->executeString($script);
 --EXPECTF--
 Fatal error: Uncaught Error: Call to a member function bar() on %s in %s%efatal_error_rethrow.php:7
 Stack trace:
-#0 [internal function]: {closure}()
+#0 [internal function]: {closur%s}()
 #1 [internal function]: Closure->__invoke()
 #2 %s%efatal_error_rethrow.php(16): V8Js->executeString(%s)
 #3 {main}

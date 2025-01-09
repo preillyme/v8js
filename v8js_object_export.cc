@@ -675,7 +675,7 @@ v8::Local<v8::Value> v8js_named_property_callback(v8::Isolate *isolate, v8::Loca
 	ce = scope = object->ce;
 
 	/* First, check the (case-insensitive) method table */
-	php_strtolower(lower, name_len);
+	zend_str_tolower(lower, name_len);
 	method_name = zend_string_init(lower, name_len, 0);
 
 	// toString() -> __tostring()

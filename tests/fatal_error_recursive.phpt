@@ -37,13 +37,13 @@ foo
 
 Fatal error: Uncaught Error: Call to a member function bar() on null in %s%efatal_error_recursive.php:7
 Stack trace:
-#0 [internal function]: {closure}()
+#0 [internal function]: {closur%s}()
 #1 [internal function]: Closure->__invoke()
 #2 %s%efatal_error_recursive.php(12): V8Js->executeString('PHP.baz();')
-#3 [internal function]: {closure}()
+#3 [internal function]: {closur%s}()
 #4 [internal function]: Closure->__invoke()
 #5 %s%efatal_error_recursive.php(17): V8Js->executeString('PHP.bar();')
-#6 [internal function]: {closure}()
+#6 [internal function]: {closur%s}()
 #7 [internal function]: Closure->__invoke()
 #8 %s%efatal_error_recursive.php(25): V8Js->executeString('PHP.nofail(); P...')
 #9 {main}

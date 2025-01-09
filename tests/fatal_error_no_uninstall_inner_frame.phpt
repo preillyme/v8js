@@ -29,7 +29,7 @@ nothing.
 
 Fatal error: Uncaught Error: Call to a member function foo() on null in %s%efatal_error_no_uninstall_inner_frame.php:15
 Stack trace:
-#0 [internal function]: {closure}()
+#0 [internal function]: {closur%s}()
 #1 [internal function]: Closure->__invoke()
 #2 %s%efatal_error_no_uninstall_inner_frame.php(18): V8Js->executeString('PHP.foo();')
 #3 {main}

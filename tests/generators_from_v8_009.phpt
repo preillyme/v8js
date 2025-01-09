@@ -22,7 +22,7 @@ EOJS;
 
 $v8 = new V8Js();
 $v8->getValue = function() {
-    trigger_error("you're gonna fail now", E_USER_ERROR);
+    @trigger_error("you're gonna fail now", E_USER_ERROR);
 };
 $gen = $v8->executeString($js);
 
