@@ -15,6 +15,9 @@ jobs:
     build:
         strategy:
             matrix:
+                # set in accordance with number of v8-versions, so caching can kick in properly
+                max-parallel: 2
+
                 operating-system:
                     - ubuntu-latest
 #                    - windows-latest
@@ -23,7 +26,7 @@ jobs:
 #                    - '8.1'
 #                    - '8.2'
                     - '8.3'
-#                    - '8.4'
+                    - '8.4'
                 v8-versions:
                     - 10.9.194
 #                    - 11.9.172
