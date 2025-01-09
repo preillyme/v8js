@@ -114,9 +114,9 @@ array(11) {
   ["function"]=>
   object(Closure)#4 (4) {
     ["name"]=>
-    string(45) "{closure:/tmp/php-v8js/tests/var_dump.php:51}"
+    string(%d) "{closure:%s/tests/var_dump.php:51}"
     ["file"]=>
-    string(32) "/tmp/php-v8js/tests/var_dump.php"
+    string(%d) "%s/tests/var_dump.php"
     ["line"]=>
     int(51)
     ["parameter"]=>
